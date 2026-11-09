@@ -56,4 +56,24 @@ export class ReservationBook {
     if (rows.length === 0) this.byResource.delete(row.resource);
     return this.byId.delete(id);
   }
+
+  freeWindows(resource: string, bounds: TimeWindow, minDuration = 1): TimeWindow[] {
+    validateWindow(bounds);
+    if (!Number.isSafeInteger(minDuration) || minDuration < 1) {
+      throw new RangeError("Minimum duration must be a positive integer");
+    }
+
+    const free: TimeWindow[] = [];
+    let cursor = bounds.start;
+    for (const booking of this.during(resource, bounds)) {
+      if (booking.start - cursor >= minDuration) {
+        free.push({ start: cursor, end: booking.start });
+      }
+      cursor = Math.max(cursor, booking.end);
+    }
+    if (bounds.end - cursor >= minDuration) {
+      free.push({ start: cursor, end: bounds.end });
+    }
+    return free;
+  }
 }
