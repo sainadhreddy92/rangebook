@@ -57,3 +57,4 @@ export class ReservationBook {
     return this.byId.delete(id);
   }
 }
+export { availableResources, type AvailabilityProbe } from "./availability.ts";
