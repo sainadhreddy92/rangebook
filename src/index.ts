@@ -56,4 +56,22 @@ export class ReservationBook {
     if (rows.length === 0) this.byResource.delete(row.resource);
     return this.byId.delete(id);
   }
+
+  reserveGroup(inputs: readonly Reservation[]): void {
+    // Check the entire request against current reservations before inserting.
+    const ids = new Set<string>();
+    for (const input of inputs) {
+      validateWindow(input);
+      if (!input.id.trim() || !input.resource.trim()) {
+        throw new TypeError("ID and resource must be nonempty");
+      }
+      if (ids.has(input.id) || this.byId.has(input.id)) {
+        throw new Error(`Duplicate reservation ID: ${input.id}`);
+      }
+      const [conflict] = this.during(input.resource, input);
+      if (conflict) throw new ReservationConflict(conflict.id);
+      ids.add(input.id);
+    }
+    for (const input of inputs) this.reserve(input);
+  }
 }
