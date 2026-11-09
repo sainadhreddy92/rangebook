@@ -56,4 +56,15 @@ export class ReservationBook {
     if (rows.length === 0) this.byResource.delete(row.resource);
     return this.byId.delete(id);
   }
+
+  reschedule(id: string, replacement: TimeWindow): Reservation {
+    const current = this.get(id);
+    if (!current) throw new Error(`Unknown reservation: ${id}`);
+    validateWindow(replacement);
+
+    const updated = { ...current, start: replacement.start, end: replacement.end };
+    this.cancel(id);
+    this.reserve(updated);
+    return { ...updated };
+  }
 }
